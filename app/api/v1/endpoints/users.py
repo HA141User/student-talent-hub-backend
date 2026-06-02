@@ -11,25 +11,22 @@ from app.models.user import User
 
 router = APIRouter()
 
-@router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED) # 1. Ubah response_model menjadi Token
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+
 async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
+
     db_user = await crud_user.get_user_by_email(db, email=user.email)
+
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     if user.nim:
         db_user_nim = await crud_user.get_user_by_nim(db, nim=user.nim)
+
         if db_user_nim:
             raise HTTPException(status_code=400, detail="NIM already registered")
-            
-    # 2. Simpan user baru ke database dan tampung hasilnya ke variabel
-    new_user = await crud_user.create_user(db=db, user=user)
-    
-    # 3. Generate token JWT secara otomatis menggunakan email dari user baru
-    access_token = create_access_token(data={"sub": new_user.email})
-    
-    # 4. Kembalikan payload token sesuai dengan schema Token
-    return {"access_token": access_token, "token_type": "bearer"}
+        
+    return await crud_user.create_user(db=db, user=user)
 
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):

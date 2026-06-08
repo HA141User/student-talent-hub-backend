@@ -1,32 +1,41 @@
 from pydantic import BaseModel
+from typing import List, Optional
 
-class ProjectCreate(BaseModel):
+class ProjectCreateBase(BaseModel):
     title: str
     description: str
+    github_link: Optional[str] = None
+    figma_link: Optional[str] = None
+    thumbnail_url: Optional[str] = None
     is_open: bool = True
-    owner_id: int
 
-class ProjectResponse(BaseModel):
+class ProjectCreate(ProjectCreateBase):
+    pass
+
+class ProjectResponse(ProjectCreateBase):
     id: int
-    title: str
-    description: str
-    is_open: bool
     status: str
     owner_id: int
     
     class Config: 
         from_attributes = True
 
-class ContributorCreate(BaseModel):
+class ContributorCreateBase(BaseModel):
     user_id: int
-    project_id: int
     role: str
 
-class ContributorResponse(BaseModel):
+class ContributorCreate(ContributorCreateBase):
+    pass
+
+class ContributorResponse(ContributorCreateBase):
     id: int
-    user_id: int
     project_id: int
-    role: str
+    
+    class Config: 
+        from_attributes = True
+
+class ProjectDetailResponse(ProjectResponse):
+    contributors: List[ContributorResponse] = []
     
     class Config: 
         from_attributes = True
